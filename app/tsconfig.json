@@ -1,0 +1,17 @@
+{
+    "compilerOptions": {
+        "strict": true,
+        "moduleResolution": "node",
+        "module": "es6",
+        "removeComments": true,
+        "outDir": "dist",
+        "sourceMap": true,
+        "target": "es2017",
+        "lib": ["dom"],
+        "jsx": "react",
+        "declaration": true,
+        "skipLibCheck": true,
+        "resolveJsonModule": true
+    },
+    "include": ["src/**/*",  "./lib/@types/**/*"]
+}
