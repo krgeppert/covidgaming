@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.Optional;
 
 @RestController
-@RequestMapping(path = "/game")
+@RequestMapping(path = "/room/:roomId/game")
 public class GameController {
     private final GameRepository gameRepository;
 

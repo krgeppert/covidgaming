@@ -5,6 +5,7 @@
   "main": "dist/index.js",
   "scripts": {
     "build": "./node_modules/.bin/webpack --config ./webpack/webpack.build.js",
+    "prettier": "./node_modules/.bin/prettier --write './src/**/*'",
     "start": "npm run start-cors-proxy & webpack-dev-server --config ./webpack/webpack.dev.js",
     "start-cors-proxy": "node ./node_modules/cors-anywhere/server.js",
     "validate-build": "./node_modules/.bin/tsc --noEmit",

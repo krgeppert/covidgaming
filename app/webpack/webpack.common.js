@@ -3,11 +3,11 @@ const packageJson = require("../package.json");
 const HtmlWebpackPlugin = require("html-webpack-plugin");
 
 module.exports = {
-    entry: [path.resolve(__dirname, "../src/index.tsx")],
+    entry: [path.resolve(__dirname, "../src/app.tsx")],
     module: {},
     plugins: [
         new HtmlWebpackPlugin({
-            title: "Found",
+            title: "Covid Gaming",
             template: "src/index.ejs"
         })
     ],

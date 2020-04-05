@@ -1,5 +1,7 @@
 package app.entity;
 
+import app.dto.EntityDto;
+
 import javax.persistence.*;
 import java.util.Date;
 
@@ -54,5 +56,13 @@ public abstract class AbstractEntity {
 
     public void setLastModifiedDate(Date lastModifiedDate) {
         this.lastModifiedDate = lastModifiedDate;
+    }
+
+    public abstract EntityDto toDto();
+
+    protected void setRootDtoAttributes(EntityDto dto) {
+        dto.setId(id);
+        dto.setCreatedDate(createdDate);
+        dto.setLastModifiedDate(lastModifiedDate);
     }
 }
