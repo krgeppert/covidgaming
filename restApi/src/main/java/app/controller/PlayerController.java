@@ -34,15 +34,16 @@ public class PlayerController {
         if (roomDto != null) {
             Optional<Room> room = roomRepository.findById(roomDto.getId());
             if (room.isPresent()) {
-                player.setRoom(room.get());
+                this.putPlayerInRoom(player, room.get());
+
             } else {
                 throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE, "room did not resolve to a known resource");
             }
-            // todo throw for missing room
+        } else {
+            playerRepository.save(player);
         }
-
-        playerRepository.save(player);
         return player.toDto();
+
     }
 
     @RequestMapping(method = RequestMethod.GET, path = "/{playerId}")
@@ -55,18 +56,25 @@ public class PlayerController {
         }
     }
 
-    @RequestMapping(method = RequestMethod.PUT, path = "/{playerId}/room")
+    @RequestMapping(method = RequestMethod.POST, path = "/{playerId}/room")
     public PlayerDto joinRoom(@PathVariable long playerId, @RequestBody RoomDto roomDto) {
         Optional<Player> player = playerRepository.findById(playerId);
         Optional<Room> room = roomRepository.findById(roomDto.getId());
         if (player.isPresent() && room.isPresent()) {
-            Player presentPlayer = player.get();
-            presentPlayer.setRoom(room.get());
-            return presentPlayer.toDto();
+            putPlayerInRoom(player.get(), room.get());
+            return player.get().toDto();
         } else {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND);
         }
     }
 
+    private void putPlayerInRoom(Player player, Room room) {
+        player.setRoom(room);
+        playerRepository.save(player);
 
+        if (room.getAdmin() == null){
+            room.setAdmin(player);
+            roomRepository.save(room);
+        }
+    }
 }

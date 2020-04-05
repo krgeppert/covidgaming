@@ -15,6 +15,9 @@ public class Room extends AbstractEntity {
     @OneToMany(cascade= CascadeType.DETACH, mappedBy = "room")
     private List<Player> players;
 
+    @OneToOne(cascade = CascadeType.DETACH)
+    private Player admin;
+
     public String getName() {
         return name;
     }
@@ -39,10 +42,23 @@ public class Room extends AbstractEntity {
         RoomDto dto =  new RoomDto();
         this.setRootDtoAttributes(dto);
         dto.setName(name);
-        if (!shallow && players != null){
-            List<PlayerDto> playerDtos = players.stream().map(player -> player.toDto(true)).collect(Collectors.toList());
-            dto.setPlayers(playerDtos);
+        if (!shallow ){
+            if (players != null) {
+                List<PlayerDto> playerDtos = players.stream().map(player -> player.toDto(true)).collect(Collectors.toList());
+                dto.setPlayers(playerDtos);
+            }
+            if (admin != null) {
+                dto.setAdmin(admin.toDto(true));
+            }
         }
         return dto;
+    }
+
+    public Player getAdmin() {
+        return admin;
+    }
+
+    public void setAdmin(Player admin) {
+        this.admin = admin;
     }
 }

@@ -97,7 +97,7 @@ export class HomePage extends Component<RouterProps, State> {
         );
     }
 
-    private redirectToRoom(roomId: string) {
+    private redirectToRoom(roomId: number) {
         this.props.history.push(`/room?roomId=${roomId}`);
     }
 }

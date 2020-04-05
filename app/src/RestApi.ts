@@ -1,8 +1,9 @@
 export interface Room {
-    id: string;
+    id: number;
     name: string;
     players: Player[];
     gameId?: string;
+    admin?: Player;
 }
 
 export interface Player {
@@ -32,7 +33,7 @@ export class RestApi {
         return await response.json();
     }
 
-    static async createPlayer(roomId: string, name: string): Promise<Player> {
+    static async createPlayer(roomId: number, name: string): Promise<Player> {
         const url = new URL("", this.rootUrl);
         url.pathname += `/player`;
         const headers = new Headers();
@@ -61,6 +62,24 @@ export class RestApi {
             mode: "cors"
         });
         const response = await fetch(request);
+        return await response.json();
+    }
+
+    static async joinRoom(playerId: string, roomId: number) {
+        const url = new URL("", this.rootUrl);
+        url.pathname += `/player/${playerId}/room`;
+        const headers = new Headers();
+        headers.set("Content-Type", "application/json");
+        const request = new Request(url.toString(), {
+            headers,
+            method: "POST",
+            mode: "cors",
+            body: JSON.stringify({
+                id: roomId
+            })
+        });
+        const response = await fetch(request);
+
         return await response.json();
     }
 }

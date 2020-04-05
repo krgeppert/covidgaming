@@ -2,10 +2,7 @@ package app.entity;
 
 import app.dto.PlayerDto;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
+import javax.persistence.*;
 
 @Entity
 public class Player extends AbstractEntity {
