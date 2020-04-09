@@ -1,37 +1,43 @@
 import * as React from "react";
 import { ChangeEvent, Component } from "react";
-import { PlayerJson, RestApi, Room } from "../../RestApi";
+import { GameType, PlayerJson, RestApi, Room } from "../../RestApi";
 import {
     AppBar,
     Button,
     CircularProgress,
     Container,
-    IconButton,
-    List,
-    ListItem,
-    ListItemText,
-    Paper,
-    TextField,
-    Toolbar,
-    Typography,
-    ListItemSecondaryAction,
     Dialog,
-    DialogTitle,
+    DialogActions,
     DialogContent,
     DialogContentText,
-    DialogActions
+    DialogTitle,
+    FormControl,
+    FormControlLabel,
+    List,
+    ListItem,
+    ListItemSecondaryAction,
+    ListItemText,
+    Paper,
+    Radio,
+    RadioGroup,
+    TextField,
+    Toolbar,
+    Typography
 } from "@material-ui/core";
 
 import { RouterProps } from "../Router";
-import { Game } from "../games/Game";
+import { BaseGameView } from "../games/BaseGameView";
 import { webSocketApiInstance } from "../../WebSocketApi";
 import { StompSubscription } from "@stomp/stompjs";
-import { Player } from "../models/Player";
+import { User } from "../../models/User";
+import { GameLauncher } from "../../models/GameLauncher";
+import { GameModel } from "../../models/games/GameModel";
 
 interface State {
-    player?: Player;
+    player?: User;
     room?: Room;
     playerId?: string;
+    selectedGame?: GameType;
     playerName: string;
 }
 
@@ -66,6 +72,8 @@ export class RoomPage extends Component<RouterProps, State> {
         });
     };
 
+    private readonly supportedGames = GameLauncher.gameInitializers;
+
     handleShareButton = async () => {
         await navigator.clipboard.writeText(window.location.href);
     };
@@ -78,9 +86,18 @@ export class RoomPage extends Component<RouterProps, State> {
         const room = this.state.room;
         const player = this.state.player;
         if (player && room) {
-            RestApi.leaveRoom(player.id, room.id);
+            await RestApi.leaveRoom(player.id, room.id);
         }
         this.redirectToLobby();
+    };
+    handleGameChange = (evt: ChangeEvent<HTMLInputElement>) => {
+        this.setState({ selectedGame: evt.target.value as GameType });
+    };
+    startGame = async () => {
+        const game = await RestApi.createGame(
+            this.state.room!.id,
+            this.state.selectedGame!
+        );
     };
 
     async componentDidMount() {
@@ -107,7 +124,7 @@ export class RoomPage extends Component<RouterProps, State> {
     private async fetchRoom(roomId: number) {
         const room = await RestApi.fetchRoom(roomId);
         this.setState({
-            room
+            room,
         });
     }
 
@@ -172,9 +189,9 @@ export class RoomPage extends Component<RouterProps, State> {
     }
 
     private renderRoomContent() {
-        const room = this.state.room!;
-        return room.gameId ? (
-            <Game room={room} />
+        const game = this.state.room?.game;
+        return game ? (
+            <BaseGameView game={game} />
         ) : (
             this.renderRoomSplashScreen()
         );
@@ -183,11 +200,15 @@ export class RoomPage extends Component<RouterProps, State> {
     private renderRoomSplashScreen() {
         return (
             <>
+                {this.renderOutOfRoomDialogue()}
+
                 <Button color={"secondary"} onClick={this.handleShareButton}>
                     Copy Room Url
                 </Button>
-                <Typography variant={"h6"}>Players</Typography>
-                {this.renderOutOfRoomDialogue()}
+                <Typography variant={"h6"}>Games</Typography>
+                {this.renderListOfGames()}
+
+                <Typography variant={"h6"}>Users</Typography>
                 <Paper>
                     <List>
                         {this.state.room?.players.map((player) => (
@@ -200,9 +221,7 @@ export class RoomPage extends Component<RouterProps, State> {
                                             : ""
                                     }
                                 />
-                                {this.state.player?.isAdminOf(
-                                    this.state.room!
-                                ) &&
+                                {this.userIsAdmin() &&
                                     player.id !== this.state.player?.id && (
                                         <ListItemSecondaryAction>
                                             <Button
@@ -220,6 +239,10 @@ export class RoomPage extends Component<RouterProps, State> {
                 </Paper>
             </>
         );
+    }
+
+    private userIsAdmin(): boolean {
+        return !!this.state.player?.isAdminOf(this.state.room!);
     }
 
     private async bootPlayer(player: PlayerJson) {
@@ -265,5 +288,30 @@ export class RoomPage extends Component<RouterProps, State> {
                 </Dialog>
             );
         }
+    }
+
+    private renderListOfGames() {
+        return (
+            <>
+                <FormControl component="fieldset">
+                    <RadioGroup
+                        value={this.state.selectedGame || ""}
+                        onChange={this.handleGameChange}
+                    >
+                        {this.supportedGames.map((supportedGame) => (
+                            <FormControlLabel
+                                key={supportedGame.name}
+                                value={supportedGame.name}
+                                control={<Radio />}
+                                label={supportedGame.name}
+                            />
+                        ))}
+                    </RadioGroup>
+                </FormControl>
+                <Button onClick={this.startGame} color={"primary"}>
+                    Start
+                </Button>
+            </>
+        );
     }
 }

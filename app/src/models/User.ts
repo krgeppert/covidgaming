@@ -1,6 +1,6 @@
-import {PlayerJson, Room} from "../../RestApi";
+import {PlayerJson, Room} from "../RestApi";
 
-export class Player {
+export class User {
     readonly id: string;
     readonly name: string;
 

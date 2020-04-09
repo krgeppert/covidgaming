@@ -2,7 +2,6 @@ package app.controller;
 
 import app.dto.PlayerDto;
 import app.dto.RoomDto;
-import app.dto.WebSocketEventDto;
 import app.entity.Player;
 import app.entity.Room;
 import app.repository.PlayerRepository;

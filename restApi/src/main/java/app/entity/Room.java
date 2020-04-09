@@ -18,6 +18,9 @@ public class Room extends AbstractEntity {
     @OneToOne(cascade = CascadeType.DETACH)
     private Player admin;
 
+    @OneToOne(cascade = CascadeType.REMOVE)
+    private Game game;
+
     public String getName() {
         return name;
     }
@@ -32,6 +35,14 @@ public class Room extends AbstractEntity {
 
     public void setPlayers(List<Player> players) {
         this.players = players;
+    }
+
+    public Game getGame() {
+        return game;
+    }
+
+    public void setGame(Game game) {
+        this.game = game;
     }
 
     public RoomDto toDto() {
@@ -49,6 +60,9 @@ public class Room extends AbstractEntity {
             }
             if (admin != null) {
                 dto.setAdmin(admin.toDto(true));
+            }
+            if (game != null){
+                dto.setGame(game.toDto());
             }
         }
         return dto;

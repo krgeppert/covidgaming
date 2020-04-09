@@ -7,6 +7,16 @@ public class RoomDto extends EntityDto {
     private String name;
     private List<PlayerDto> players;
     private PlayerDto admin;
+    private GameDto game;
+
+    public GameDto getGame() {
+        return game;
+    }
+
+    public void setGame(GameDto game) {
+        this.game = game;
+    }
+
 
     public String getName() {
         return name;

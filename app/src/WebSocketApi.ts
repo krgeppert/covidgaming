@@ -1,7 +1,8 @@
-import {Client, IFrame, Stomp} from "@stomp/stompjs";
+import { Client, IFrame, Stomp } from "@stomp/stompjs";
 import { StompSubscription } from "@stomp/stompjs/esm5/stomp-subscription";
 import { IMessage } from "@stomp/stompjs/esm5/i-message";
-import {Room} from "./RestApi";
+import { Room } from "./RestApi";
+import {GameModel} from "./models/games/GameModel";
 
 export class WebSocketApi {
     private readonly rootUrl = new URL("ws://localhost:8000/websocket");
@@ -9,7 +10,7 @@ export class WebSocketApi {
         webSocketFactory: () => {
             return new WebSocket(this.rootUrl.toString());
         }
-    })
+    });
 
     private promiseToConnect?: Promise<IFrame>;
     private connected: boolean = false;
@@ -34,6 +35,13 @@ export class WebSocketApi {
         return this.client.subscribe(`/topic/room/${roomId}`, (message) => {
             callback(JSON.parse(message.body));
         });
+    }
+
+    async subscribeToGameUpdates(gameId: number, callback: (game: GameModel) => void) {
+        await this.connect();
+        return this.client.subscribe(`/topic/game/${gameId}`, (message)=>{
+            callback(JSON.parse(message.body));
+        })
     }
 }
 
