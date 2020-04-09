@@ -5,6 +5,7 @@ import app.entity.Room;
 import app.repository.RoomRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -15,10 +16,12 @@ import java.util.Optional;
 public class RoomController {
 
     private final RoomRepository roomRepository;
+    private final SimpMessagingTemplate messagingTemplate;
 
     @Autowired
-    public RoomController(RoomRepository roomRepository) {
+    public RoomController(RoomRepository roomRepository, SimpMessagingTemplate messagingTemplate) {
         this.roomRepository = roomRepository;
+        this.messagingTemplate = messagingTemplate;
     }
 
     @RequestMapping(method = RequestMethod.POST)

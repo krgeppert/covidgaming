@@ -1,6 +1,6 @@
 import * as React from "react";
 import { ChangeEvent, Component } from "react";
-import { Player, RestApi, Room } from "../../RestApi";
+import { PlayerJson, RestApi, Room } from "../../RestApi";
 import {
     AppBar,
     Button,
@@ -13,11 +13,20 @@ import {
     Paper,
     TextField,
     Toolbar,
-    Typography
+    Typography,
+    ListItemSecondaryAction,
+    Dialog,
+    DialogTitle,
+    DialogContent,
+    DialogContentText,
+    DialogActions
 } from "@material-ui/core";
 
 import { RouterProps } from "../Router";
 import { Game } from "../games/Game";
+import { webSocketApiInstance } from "../../WebSocketApi";
+import { StompSubscription } from "@stomp/stompjs";
+import { Player } from "../models/Player";
 
 interface State {
     player?: Player;
@@ -32,6 +41,8 @@ export class RoomPage extends Component<RouterProps, State> {
         playerId: window.localStorage.getItem("playerId") || undefined
     };
 
+    private roomSubscription?: StompSubscription;
+
     private readonly handleNameChange = (
         evt: ChangeEvent<HTMLInputElement>
     ) => {
@@ -39,6 +50,7 @@ export class RoomPage extends Component<RouterProps, State> {
             playerName: evt.target.value
         });
     };
+
     private handlePlayerCreate = async () => {
         const roomId = this.state.room!.id;
         const player = await RestApi.createPlayer(
@@ -54,6 +66,23 @@ export class RoomPage extends Component<RouterProps, State> {
         });
     };
 
+    handleShareButton = async () => {
+        await navigator.clipboard.writeText(window.location.href);
+    };
+
+    redirectToLobby = () => {
+        this.props.history.push("/");
+    };
+
+    handleLeaveRoom = async () => {
+        const room = this.state.room;
+        const player = this.state.player;
+        if (player && room) {
+            RestApi.leaveRoom(player.id, room.id);
+        }
+        this.redirectToLobby();
+    };
+
     async componentDidMount() {
         const searchParams = new URLSearchParams(location.search);
         const roomId = Number(searchParams.get("roomId")!);
@@ -62,6 +91,20 @@ export class RoomPage extends Component<RouterProps, State> {
             const player = await RestApi.joinRoom(playerId, roomId);
             this.setState({ player });
         }
+        await this.fetchRoom(roomId);
+        this.roomSubscription = await webSocketApiInstance.subscribeToRoomUpdates(
+            roomId,
+            (room) => {
+                this.setState({ room });
+            }
+        );
+    }
+
+    componentWillUnmount(): void {
+        this.roomSubscription?.unsubscribe();
+    }
+
+    private async fetchRoom(roomId: number) {
         const room = await RestApi.fetchRoom(roomId);
         this.setState({
             room
@@ -76,7 +119,9 @@ export class RoomPage extends Component<RouterProps, State> {
                         <Typography variant="h6">
                             {this.state.room?.name}
                         </Typography>
-                        <Button color="inherit">Leave Room</Button>
+                        <Button color="inherit" onClick={this.handleLeaveRoom}>
+                            Leave Room
+                        </Button>
                     </Toolbar>
                 </AppBar>
                 <Container>
@@ -138,7 +183,11 @@ export class RoomPage extends Component<RouterProps, State> {
     private renderRoomSplashScreen() {
         return (
             <>
+                <Button color={"secondary"} onClick={this.handleShareButton}>
+                    Copy Room Url
+                </Button>
                 <Typography variant={"h6"}>Players</Typography>
+                {this.renderOutOfRoomDialogue()}
                 <Paper>
                     <List>
                         {this.state.room?.players.map((player) => (
@@ -151,11 +200,70 @@ export class RoomPage extends Component<RouterProps, State> {
                                             : ""
                                     }
                                 />
+                                {this.state.player?.isAdminOf(
+                                    this.state.room!
+                                ) &&
+                                    player.id !== this.state.player?.id && (
+                                        <ListItemSecondaryAction>
+                                            <Button
+                                                onClick={() => {
+                                                    this.bootPlayer(player);
+                                                }}
+                                            >
+                                                Boot
+                                            </Button>
+                                        </ListItemSecondaryAction>
+                                    )}
                             </ListItem>
                         ))}
                     </List>
                 </Paper>
             </>
         );
+    }
+
+    private async bootPlayer(player: PlayerJson) {
+        RestApi.leaveRoom(player.id, this.state.room!.id);
+    }
+
+    private renderOutOfRoomDialogue() {
+        if (
+            this.state.room?.players.every(
+                (playerInRoom) => playerInRoom.id !== this.state.player?.id
+            )
+        ) {
+            return (
+                <Dialog open={true}>
+                    <DialogTitle id="alert-dialog-title">
+                        {"Use Google's location service?"}
+                    </DialogTitle>
+                    <DialogContent>
+                        <DialogContentText>
+                            You are no longer in this room.
+                        </DialogContentText>
+                    </DialogContent>
+                    <DialogActions>
+                        <Button
+                            onClick={async () => {
+                                await RestApi.joinRoom(
+                                    this.state.player!.id,
+                                    this.state.room!.id
+                                );
+                            }}
+                            color="primary"
+                        >
+                            Rejoin
+                        </Button>
+                        <Button
+                            onClick={this.redirectToLobby}
+                            color="primary"
+                            autoFocus
+                        >
+                            Leave
+                        </Button>
+                    </DialogActions>
+                </Dialog>
+            );
+        }
     }
 }

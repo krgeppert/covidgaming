@@ -1,18 +1,20 @@
+import {Player} from "./components/models/Player";
+
 export interface Room {
     id: number;
     name: string;
-    players: Player[];
+    players: PlayerJson[];
     gameId?: string;
-    admin?: Player;
-}
+    admin?: PlayerJson;
+} 
 
-export interface Player {
+export interface PlayerJson {
     name: string;
     id: string;
 }
 
 export class RestApi {
-    private static rootUrl = new URL(
+    static readonly rootUrl = new URL(
         "http://localhost:8080/http://localhost:8000"
     );
 
@@ -51,7 +53,8 @@ export class RestApi {
         });
         const response = await fetch(request);
 
-        return await response.json();
+        const playerJson = await response.json();
+        return new Player(playerJson);
     }
 
     static async fetchRoom(roomId: number): Promise<Room> {
@@ -62,10 +65,12 @@ export class RestApi {
             mode: "cors"
         });
         const response = await fetch(request);
+        await RestApi.assertValidResponseStatus(response);
+
         return await response.json();
     }
 
-    static async joinRoom(playerId: string, roomId: number) {
+    static async joinRoom(playerId: string, roomId: number): Promise<Player>{
         const url = new URL("", this.rootUrl);
         url.pathname += `/player/${playerId}/room`;
         const headers = new Headers();
@@ -79,7 +84,31 @@ export class RestApi {
             })
         });
         const response = await fetch(request);
+        return  new Player(await response.json());
+    }
 
-        return await response.json();
+    static async leaveRoom(playerId: string, roomId: number): Promise<Player>{
+        const url = new URL("", this.rootUrl);
+        url.pathname += `/player/${playerId}/room`;
+        const request = new Request(url.toString(), {
+            method: "DELETE",
+            mode: "cors"
+        });
+        const response = await fetch(request);
+
+        return new Player(await response.json());
+    }
+
+    private static async assertValidResponseStatus(response: Response){
+        if (!response.ok){
+            let message = response.statusText;
+            try {
+                const errorResponse = await response.json();
+                message = errorResponse.message || message;
+            } catch(e){
+
+            }
+            throw new Error(message);
+        }
     }
 }

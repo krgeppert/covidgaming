@@ -2,12 +2,14 @@ package app.controller;
 
 import app.dto.PlayerDto;
 import app.dto.RoomDto;
+import app.dto.WebSocketEventDto;
 import app.entity.Player;
 import app.entity.Room;
 import app.repository.PlayerRepository;
 import app.repository.RoomRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -19,11 +21,15 @@ public class PlayerController {
 
     private final PlayerRepository playerRepository;
     private final RoomRepository roomRepository;
+    private final SimpMessagingTemplate messagingTemplate;
+
 
     @Autowired
-    public PlayerController(PlayerRepository playerRepository, RoomRepository roomRepository) {
+    public PlayerController(PlayerRepository playerRepository, RoomRepository roomRepository, SimpMessagingTemplate messagingTemplate) {
         this.playerRepository = playerRepository;
         this.roomRepository = roomRepository;
+        this.messagingTemplate = messagingTemplate;
+
     }
 
     @RequestMapping(method = RequestMethod.POST)
@@ -68,13 +74,46 @@ public class PlayerController {
         }
     }
 
+    @RequestMapping(method = RequestMethod.DELETE, path = "/{playerId}/room")
+    public PlayerDto leaveRoom(@PathVariable long playerId) {
+        Optional<Player> optionalPlayer = playerRepository.findById(playerId);
+        if (optionalPlayer.isPresent() ) {
+            Player player = optionalPlayer.get();
+            Room room = player.getRoom();
+            if (room != null){
+                removePlayerFromRoom(player, room);
+            }
+            return player.toDto();
+        } else {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND);
+        }
+    }
+
+
     private void putPlayerInRoom(Player player, Room room) {
+        Room existingRoom = player.getRoom();
+        if (existingRoom != null){
+            removePlayerFromRoom(player, existingRoom);
+        }
         player.setRoom(room);
         playerRepository.save(player);
 
-        if (room.getAdmin() == null){
+        if (room.getAdmin() == null) {
             room.setAdmin(player);
             roomRepository.save(room);
         }
+        messagingTemplate.convertAndSend("/topic/room/" + room.getId(), room.toDto());
+    }
+
+    private void removePlayerFromRoom(Player player, Room room) {
+        player.setRoom(null);
+        playerRepository.save(player);
+
+        Player admin = room.getAdmin();
+        if (admin != null && admin.getId() == player.getId()) {
+            room.setAdmin(null);
+            roomRepository.save(room);
+        }
+        messagingTemplate.convertAndSend("/topic/room/" + room.getId(), room.toDto());
     }
 }
