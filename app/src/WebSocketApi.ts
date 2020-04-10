@@ -1,8 +1,7 @@
-import { Client, IFrame, Stomp } from "@stomp/stompjs";
+import { Client, IFrame } from "@stomp/stompjs";
 import { StompSubscription } from "@stomp/stompjs/esm5/stomp-subscription";
-import { IMessage } from "@stomp/stompjs/esm5/i-message";
-import { Room } from "./RestApi";
-import {GameModel} from "./models/games/GameModel";
+import { GameEventJson, GameJson, Room } from "./RestApi";
+import { GameEvent } from "./models/games/GameEvent";
 
 export class WebSocketApi {
     private readonly rootUrl = new URL("ws://localhost:8000/websocket");
@@ -37,11 +36,34 @@ export class WebSocketApi {
         });
     }
 
-    async subscribeToGameUpdates(gameId: number, callback: (game: GameModel) => void) {
+    async subscribeToGameUpdates(
+        gameId: number,
+        callback: (game: GameJson) => void
+    ) {
         await this.connect();
-        return this.client.subscribe(`/topic/game/${gameId}`, (message)=>{
+        return this.client.subscribe(`/topic/game/${gameId}`, (message) => {
             callback(JSON.parse(message.body));
-        })
+        });
+    }
+
+    async subscribeToGameEvents(
+        gameId: number,
+        callback: (game: GameEventJson) => void
+    ) {
+        await this.connect();
+        return this.client.subscribe(
+            `/topic/game/${gameId}/event`,
+            (message) => {
+                callback(JSON.parse(message.body));
+            }
+        );
+    }
+
+    sendGameEvent(gameId: number, gameEvent: GameEventJson) {
+        this.client.publish({
+            destination: `/topic/game/${gameId}/event`,
+            body: JSON.stringify(gameEvent)
+        });
     }
 }
 

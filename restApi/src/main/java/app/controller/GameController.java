@@ -1,8 +1,8 @@
 package app.controller;
 
 import app.dto.GameDto;
-import app.dto.GameEventDto;
 import app.entity.Game;
+import app.entity.Player;
 import app.entity.Room;
 import app.repository.GameRepository;
 import app.repository.RoomRepository;
@@ -12,7 +12,9 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping(path = "/room/{roomId}/game")
@@ -41,10 +43,38 @@ public class GameController {
         if (existingGame != null && !existingGame.isFinished()) {
             throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE, "Room has an unfinished game.");
         }
+        game.setParticipants(room.getPlayers().stream().map(a -> a).collect(Collectors.toList()));
         gameRepository.save(game);
         room.setGame(game);
         roomRepository.save(room);
         messagingTemplate.convertAndSend("/topic/room/" + roomId, room.toDto());
+        return game.toDto();
+    }
+
+    @RequestMapping(method = RequestMethod.PUT, path = "/{gameId}/team/{teamId}")
+    public GameDto update(@RequestBody List<Player> players, @PathVariable long roomId, @PathVariable long gameId, @PathVariable long teamId) {
+        Optional<Room> optionalRoom = roomRepository.findById(roomId);
+        Optional<Game> optionalGame = gameRepository.findById(gameId);
+        if (optionalRoom.isEmpty() || optionalGame.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Room or Game not found");
+        }
+        Room room = optionalRoom.get();
+        Game game = optionalGame.get();
+        if (room.getGame().getId() != game.getId()) {
+            throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE, "Wtf u doing");
+        }
+        if (teamId == 1) {
+            game.setTeam1(players);
+        } else if (
+                teamId == 2
+        ) {
+            game.setTeam2(players);
+        } else {
+            throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE, "Wtf u doing");
+        }
+
+        gameRepository.save(game);
+        messagingTemplate.convertAndSend("/topic/game/" + game.getId(), game.toDto());
         return game.toDto();
     }
 

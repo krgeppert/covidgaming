@@ -86,7 +86,7 @@ export class RoomPage extends Component<RouterProps, State> {
         const room = this.state.room;
         const player = this.state.player;
         if (player && room) {
-            await RestApi.leaveRoom(player.id, room.id);
+            await RestApi.leaveRoom(player.id);
         }
         this.redirectToLobby();
     };
@@ -124,7 +124,7 @@ export class RoomPage extends Component<RouterProps, State> {
     private async fetchRoom(roomId: number) {
         const room = await RestApi.fetchRoom(roomId);
         this.setState({
-            room,
+            room
         });
     }
 
@@ -191,7 +191,11 @@ export class RoomPage extends Component<RouterProps, State> {
     private renderRoomContent() {
         const game = this.state.room?.game;
         return game ? (
-            <BaseGameView game={game} />
+            <BaseGameView
+                roomId={this.state.room!.id}
+                game={game}
+                player={this.state.player!}
+            />
         ) : (
             this.renderRoomSplashScreen()
         );
@@ -246,7 +250,7 @@ export class RoomPage extends Component<RouterProps, State> {
     }
 
     private async bootPlayer(player: PlayerJson) {
-        RestApi.leaveRoom(player.id, this.state.room!.id);
+        RestApi.leaveRoom(player.id);
     }
 
     private renderOutOfRoomDialogue() {

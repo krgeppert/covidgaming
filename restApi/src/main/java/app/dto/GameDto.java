@@ -5,8 +5,10 @@ import app.entity.Player;
 import java.util.List;
 
 public class GameDto extends EntityDto {
+    private List<PlayerDto> participants;
     private List<PlayerDto> team1;
     private List<PlayerDto> team2;
+
 
     public List<PlayerDto> getTeam1() {
         return team1;
@@ -22,5 +24,13 @@ public class GameDto extends EntityDto {
 
     public void setTeam2(List<PlayerDto> team2) {
         this.team2 = team2;
+    }
+
+    public List<PlayerDto> getParticipants() {
+        return participants;
+    }
+
+    public void setParticipants(List<PlayerDto> participants) {
+        this.participants = participants;
     }
 }

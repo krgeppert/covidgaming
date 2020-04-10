@@ -1,10 +1,20 @@
 import { User } from "./models/User";
-import { GameModel, GameEvent } from "./models/games/GameModel";
+
+export interface GameEventJson {
+    creator: PlayerJson;
+    type: string;
+    createdDate: string;
+    id: number;
+}
 
 export interface GameJson {
     id: number;
     type: GameType;
-    events: GameEvent[];
+    createdDate: string;
+    participants: PlayerJson[];
+    team1?: PlayerJson[];
+    team2?: PlayerJson[];
+    events?: GameEventJson[];
 }
 
 export interface Room {
@@ -98,7 +108,7 @@ export class RestApi {
         return new User(await response.json());
     }
 
-    static async leaveRoom(playerId: string, roomId: number): Promise<User> {
+    static async leaveRoom(playerId: string): Promise<User> {
         const url = new URL("", this.rootUrl);
         url.pathname += `/player/${playerId}/room`;
         const request = new Request(url.toString(), {
@@ -151,6 +161,22 @@ export class RestApi {
         });
         const response = await fetch(request);
         await RestApi.assertValidResponseStatus(response);
+
+        return await response.json();
+    }
+
+    static async updateTeam(roomId: number,gameId: number, teamId: number, players: PlayerJson[]): Promise<GameJson> {
+        const url = new URL("", this.rootUrl);
+        url.pathname += `/room/${roomId}/game/${gameId}/team/${teamId}`;
+        const headers = new Headers();
+        headers.set("Content-Type", "application/json");
+        const request = new Request(url.toString(), {
+            headers,
+            method: "PUT",
+            mode: "cors",
+            body: JSON.stringify(players)
+        });
+        const response = await fetch(request);
 
         return await response.json();
     }
