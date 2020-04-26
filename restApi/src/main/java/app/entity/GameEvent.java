@@ -14,12 +14,16 @@ public class GameEvent extends AbstractEntity {
     @OneToOne
     private Player creator;
 
+    @Column(columnDefinition = "json")
+    private String data;
+
     @Override
     public GameEventDto toDto() {
         GameEventDto dto = new GameEventDto();
         setRootDtoAttributes(dto);
         return dto;
     }
+
 
     public Player getCreator() {
         return creator;
@@ -35,5 +39,13 @@ public class GameEvent extends AbstractEntity {
 
     public void setType(String type) {
         this.type = type;
+    }
+
+    public Object getData() {
+        return data;
+    }
+
+    public void setData(String data) {
+        this.data = data;
     }
 }

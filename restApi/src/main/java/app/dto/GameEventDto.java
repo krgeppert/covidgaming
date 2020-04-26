@@ -1,13 +1,13 @@
 package app.dto;
 
-import app.entity.Player;
 
-import javax.persistence.OneToOne;
 
+// Out of sync with game event cuz im lazy.
 public class GameEventDto extends EntityDto {
 
     private String type;
     private PlayerDto creator;
+    private Object data;
 
     public String getType() {
         return type;
@@ -23,5 +23,13 @@ public class GameEventDto extends EntityDto {
 
     public void setCreator(PlayerDto creator) {
         this.creator = creator;
+    }
+
+    public Object getData() {
+        return data;
+    }
+
+    public void setData(Object data) {
+        this.data = data;
     }
 }

@@ -44,7 +44,7 @@ interface State {
 export class RoomPage extends Component<RouterProps, State> {
     state: State = {
         playerName: "",
-        playerId: window.localStorage.getItem("playerId") || undefined
+        playerId: window.sessionStorage.getItem("playerId") || undefined
     };
 
     private roomSubscription?: StompSubscription;
@@ -65,7 +65,7 @@ export class RoomPage extends Component<RouterProps, State> {
         );
         const room = await RestApi.fetchRoom(roomId);
 
-        localStorage.setItem("playerId", player.id);
+        sessionStorage.setItem("playerId", player.id);
         this.setState({
             player,
             room

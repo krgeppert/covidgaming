@@ -79,35 +79,7 @@ export class BaseGameView extends Component<Props> {
                         })
                         .map((participant) => {
                             return (
-                                <ListItem key={participant.id} divider={true}>
-                                    <ListItemText>
-                                        {participant.name}
-                                    </ListItemText>
-                                    <ListItemSecondaryAction>
-                                        <Button
-                                            color={"primary"}
-                                            onClick={() => {
-                                                this.game.toggleTeam(
-                                                    participant,
-                                                    1
-                                                );
-                                            }}
-                                        >
-                                            Team 1
-                                        </Button>
-                                        <Button
-                                            color={"primary"}
-                                            onClick={() => {
-                                                this.game.toggleTeam(
-                                                    participant,
-                                                    2
-                                                );
-                                            }}
-                                        >
-                                            Team 2
-                                        </Button>
-                                    </ListItemSecondaryAction>
-                                </ListItem>
+                                this.renderTeamPickerPLayerView(participant, false)
                             );
                         })}
                 </List>
@@ -164,5 +136,37 @@ export class BaseGameView extends Component<Props> {
                 </Button>
             </>
         );
+    }
+
+    private renderTeamPickerPLayerView(participant: PlayerJson, isOnTeam: boolean) {
+        return <ListItem key={participant.id} divider={true}>
+            <ListItemText>
+                {participant.name}
+            </ListItemText>
+            <ListItemSecondaryAction>
+                <Button
+                    color={"primary"}
+                    onClick={() => {
+                        this.game.toggleTeam(
+                            participant,
+                            1
+                        );
+                    }}
+                >
+                    Team 1
+                </Button>
+                <Button
+                    color={"primary"}
+                    onClick={() => {
+                        this.game.toggleTeam(
+                            participant,
+                            2
+                        );
+                    }}
+                >
+                    Team 2
+                </Button>
+            </ListItemSecondaryAction>
+        </ListItem>;
     }
 }
