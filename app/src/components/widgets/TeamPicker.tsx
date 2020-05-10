@@ -1,5 +1,3 @@
-import * as React from "react";
-import {Component} from "react";
 import {GameModel} from "../../models/games/GameModel";
 import {
     Button,
@@ -10,71 +8,20 @@ import {
     ListItemText,
     ListSubheader
 } from "@material-ui/core";
-import {GameJson, PlayerJson} from "../../RestApi";
+import * as React from "react";
+import {Component} from "react";
+import {PlayerJson} from "../../RestApi";
 
-interface Props {
-    roomId: number;
-    game: GameJson;
-    player: PlayerJson;
-}
-
-export class BaseGameView extends Component<Props> {
-    private readonly game: GameModel;
-
-    private gameSubscription?: Promise<() => void>;
-
-    constructor(props: Readonly<Props>) {
-        super(props);
-        this.game = new GameModel(props.game, props.roomId, props.player);
-    }
-
-    componentDidMount(): void {
-        this.gameSubscription = this.game.connectToGameUpdates(() => {
-            this.forceUpdate();
-        });
-    }
+export class TeamPicker extends Component<{game: GameModel}> {
 
     render() {
-        if (!this.game.isStarted()) {
-            return (
-                <>
-                    {this.renderTeamPicker()}
-                    <Button
-                        onClick={() => {
-                            this.game.start();
-                        }}
-                    >
-                        Start Game
-                    </Button>
-                </>
-            );
-        } else {
-            return this.renderEventList();
-        }
-    }
-
-    private renderEventList() {
-        return (
-            <List>
-                {this.game.gameEvents.map((gameEvent) => (
-                    <ListItem
-                        key={gameEvent.id}
-                        selected={gameEvent === this.game.getLatestEvent()}
-                    >
-                        <ListItemText>{gameEvent.getMessage()}</ListItemText>
-                    </ListItem>
-                ))}
-            </List>
-        );
-    }
-
-    private renderTeamPicker() {
+        const game = this.props.game;
         return (
             <>
                 <List subheader={<ListSubheader>Participants</ListSubheader>}>
-                    {this.game.participants
+                    {game.participants
                         .filter((participant) => {
-                            return !this.game.playerIsOnTeam(participant);
+                            return !game.playerIsOnTeam(participant);
                         })
                         .map((participant) => {
                             return this.renderTeamPickerPLayerView(
@@ -84,7 +31,7 @@ export class BaseGameView extends Component<Props> {
                 </List>
                 <Container style={{display: "flex"}}>
                     {[1, 2].map((teamNumber) => {
-                        const teamMembers = this.game.gameJson[
+                        const teamMembers = game.gameJson[
                             `team${teamNumber}` as "team1" | "team2"
                             ];
                         return (
@@ -109,7 +56,7 @@ export class BaseGameView extends Component<Props> {
                 </Container>
                 <Button
                     onClick={() => {
-                        this.game.randomizeTeams();
+                        game.randomizeTeams();
                     }}
                 >
                     Randomize
@@ -118,10 +65,12 @@ export class BaseGameView extends Component<Props> {
         );
     }
 
+
     private renderTeamPickerPLayerView(
         participant: PlayerJson,
         teamNumber?: 1 | 2,
     ) {
+        const game = this.props.game;
         return <ListItem key={participant.id} divider={true}>
             <ListItemText>{participant.name}</ListItemText>
 
@@ -130,7 +79,7 @@ export class BaseGameView extends Component<Props> {
                     <Button
                         color={"primary"}
                         onClick={() => {
-                            this.game.toggleTeam(participant, 1);
+                            game.toggleTeam(participant, 1);
                         }}
                     >
                         Team 1
@@ -140,7 +89,7 @@ export class BaseGameView extends Component<Props> {
                     <Button
                         color={"primary"}
                         onClick={() => {
-                            this.game.toggleTeam(participant, 2);
+                            game.toggleTeam(participant, 2);
                         }}
                     >
                         Team 2
@@ -150,7 +99,7 @@ export class BaseGameView extends Component<Props> {
                     <Button
                         color={"primary"}
                         onClick={() => {
-                            this.game.toggleTeam(participant, teamNumber);
+                            game.toggleTeam(participant, teamNumber);
                         }}
                     >
                         Remove

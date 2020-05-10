@@ -1,6 +1,7 @@
 import { User } from "./models/User";
 
 export interface GameEventJson {
+    data: string;
     creator: PlayerJson;
     type: string;
     createdDate: string;

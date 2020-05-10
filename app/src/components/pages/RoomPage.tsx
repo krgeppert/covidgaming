@@ -26,7 +26,7 @@ import {
 } from "@material-ui/core";
 
 import { RouterProps } from "../Router";
-import { BaseGameView } from "../games/BaseGameView";
+import { WaveAmplitude } from "../games/WaveAmplitude";
 import { webSocketApiInstance } from "../../WebSocketApi";
 import { StompSubscription } from "@stomp/stompjs";
 import { User } from "../../models/User";
@@ -191,7 +191,7 @@ export class RoomPage extends Component<RouterProps, State> {
     private renderRoomContent() {
         const game = this.state.room?.game;
         return game ? (
-            <BaseGameView
+            <WaveAmplitude
                 roomId={this.state.room!.id}
                 game={game}
                 player={this.state.player!}

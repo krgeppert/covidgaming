@@ -47,13 +47,6 @@ export class GameModel {
         };
     }
 
-    protected pushGameEvent(gameEvent: GameEvent) {
-        webSocketApiInstance.sendGameEvent(
-            this.gameJson.id,
-            gameEvent.toJson()
-        );
-    }
-
     getLatestEvent(): GameEvent | undefined {
         const sorted = this.getEventsSortedByDate();
         return sorted[sorted.length - 1];
@@ -64,9 +57,12 @@ export class GameModel {
         return sorted[0];
     }
 
-    getEventsSortedByDate() {
-        return this.gameEvents.sort((first, second) => {
-            return first.getDate().getTime() - second.getDate().getTime();
+    getEventsSortedByDate(reverse: boolean = false) {
+        return this.gameEvents.concat().sort((first, second) => {
+            return (
+                (first.getDate().getTime() - second.getDate().getTime()) *
+                (reverse ? -1 : 1)
+            );
         });
     }
 
@@ -126,11 +122,39 @@ export class GameModel {
         this.sendGameEvent("start");
     }
 
-    private sendGameEvent(type: string) {
+    private sendGameEvent(type: string, data?: object) {
         // @ts-ignore go fuck urself
         webSocketApiInstance.sendGameEvent(this.gameJson.id, {
             creator: this.player,
-            type
+            type,
+            data: JSON.stringify(data)
         });
+    }
+
+    playerIsClueGiver() {
+        return true; // todo
+    }
+
+    getGuessZones() {
+        return [
+            // todo
+            { start: 0.1, value: 1, end: 0.2 },
+            { start: 0.2, value: 2, end: 0.3 },
+            { start: 0.3, value: 3, end: 0.4 },
+            { start: 0.4, value: 2, end: 0.5 },
+            { start: 0.5, value: 1, end: 0.6 }
+        ];
+    }
+
+    getSliderPosition() {
+        return (
+            this.getEventsSortedByDate(true)
+                .find((gameEvent) => gameEvent.isSliderChangeEvent())
+                ?.getSliderPosition() || 0.5
+        );
+    }
+
+    changeSliderPosition(position: number) {
+        this.sendGameEvent("slider-change", { position });
     }
 }

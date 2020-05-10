@@ -40,6 +40,9 @@ public class GameEventController {
         if (game.isFinished()) {
             throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE, "Game is finished");
         }
+        if (gameEvent.getData() == null) {
+            gameEvent.setData("");
+        }
         gameEventRepository.save(gameEvent);
         List<GameEvent> events = game.getEvents();
         events.add(gameEvent);

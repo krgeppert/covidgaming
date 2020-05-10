@@ -8,7 +8,7 @@ export class GameEvent {
     }
 
     get id(): number {
-        return this.gameEventJson.id
+        return this.gameEventJson.id;
     }
 
     getDate(): Date {
@@ -18,13 +18,29 @@ export class GameEvent {
         return this.toString();
     }
 
+    isSliderChangeEvent(): boolean {
+        return this.gameEventJson.type === "slider-change";
+    }
+
+    getSliderPosition(): number {
+        if (!this.isSliderChangeEvent()) {
+            throw new Error("not slider change event");
+        }
+        const { position } = this.getData() as { position: number };
+        return position;
+    }
+
+    private getData() {
+        try {
+            return JSON.parse(this.gameEventJson.data);
+        } catch {
+            return {};
+        }
+    }
+
     toString(): string {
         return `${this.gameEventJson.type} was done by ${
             this.gameEventJson.creator.name
         } at ${this.getDate().toLocaleTimeString()}`;
-    }
-
-    toJson(): GameEventJson {
-        return this.gameEventJson;
     }
 }
