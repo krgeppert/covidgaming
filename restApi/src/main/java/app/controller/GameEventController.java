@@ -7,11 +7,11 @@ import app.repository.GameEventRepository;
 import app.repository.GameRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
-import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
@@ -22,17 +22,16 @@ public class GameEventController {
 
     private final GameRepository gameRepository;
     private final GameEventRepository gameEventRepository;
-    private final SimpMessagingTemplate simpMessagingTemplate;
 
     @Autowired
-    public GameEventController(GameRepository gameRepository, GameEventRepository gameEventRepository, SimpMessagingTemplate simpMessagingTemplate) {
+    public GameEventController(GameRepository gameRepository, GameEventRepository gameEventRepository) {
         this.gameRepository = gameRepository;
         this.gameEventRepository = gameEventRepository;
-        this.simpMessagingTemplate = simpMessagingTemplate;
     }
 
-    @MessageMapping("/topic/game/{gameId}/event")
-    public GameEventDto createGameEvent(@Payload GameEvent gameEvent, @PathVariable long gameId) {
+    @MessageMapping("/game/{gameId}/event")
+    @Transactional
+    public GameEventDto createGameEvent(@Payload GameEvent gameEvent, @DestinationVariable long gameId) {
         Optional<Game> optionalGame = gameRepository.findById(gameId);
         if (optionalGame.isEmpty()) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Game not found");

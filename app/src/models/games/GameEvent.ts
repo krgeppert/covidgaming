@@ -7,6 +7,10 @@ export class GameEvent {
         this.gameEventJson = gameEventJson;
     }
 
+    get id(): number {
+        return this.gameEventJson.id
+    }
+
     getDate(): Date {
         return new Date(this.gameEventJson.createdDate);
     }

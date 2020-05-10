@@ -2,12 +2,11 @@ package app.dto;
 
 
 
-// Out of sync with game event cuz im lazy.
 public class GameEventDto extends EntityDto {
 
     private String type;
     private PlayerDto creator;
-    private Object data;
+    private String data;
 
     public String getType() {
         return type;
@@ -29,7 +28,7 @@ public class GameEventDto extends EntityDto {
         return data;
     }
 
-    public void setData(Object data) {
+    public void setData(String data) {
         this.data = data;
     }
 }

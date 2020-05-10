@@ -16,14 +16,14 @@ public class Game extends AbstractEntity {
     @Column(nullable = false, updatable = false)
     private List<Player> participants;
 
-    @OneToMany(cascade= CascadeType.DETACH)
+    @OneToMany(cascade = CascadeType.DETACH)
     private List<Player> team1;
 
 
-    @OneToMany(cascade= CascadeType.DETACH)
+    @OneToMany(cascade = CascadeType.DETACH)
     private List<Player> team2;
 
-    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     private List<GameEvent> events;
 
     public List<Player> getTeam1() {
@@ -60,22 +60,25 @@ public class Game extends AbstractEntity {
 
     @Override
     public GameDto toDto() {
-        GameDto dto= new GameDto();
+        GameDto dto = new GameDto();
         setRootDtoAttributes(dto);
         dto.setParticipants(participants.stream().map(player -> player.toDto(true)).collect(Collectors.toList()));
-        if (team1 != null){
+        if (team1 != null) {
             dto.setTeam1(team1.stream().map(player -> player.toDto(true)).collect(Collectors.toList()));
         }
 
         if (team2 != null) {
             dto.setTeam2(team2.stream().map(player -> player.toDto(true)).collect(Collectors.toList()));
         }
+        if (events != null) {
+            dto.setEvents(events.stream().map(event -> event.toDto()).collect(Collectors.toList()));
+        }
         return dto;
     }
 
     public boolean isFinished() {
         events.sort(Comparator.comparing(AbstractEntity::getCreatedDate));
-        GameEvent lastEvent = events.get(events.size() - 1);
+        GameEvent lastEvent = events.size() > 0 ? events.get(events.size() - 1) : null;
         return lastEvent != null && lastEvent.getType() == "finish";
 
     }

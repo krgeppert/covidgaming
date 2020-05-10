@@ -61,7 +61,7 @@ export class WebSocketApi {
 
     sendGameEvent(gameId: number, gameEvent: GameEventJson) {
         this.client.publish({
-            destination: `/topic/game/${gameId}/event`,
+            destination: `/app/game/${gameId}/event`,
             body: JSON.stringify(gameEvent)
         });
     }

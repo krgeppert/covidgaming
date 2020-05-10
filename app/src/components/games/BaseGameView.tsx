@@ -1,22 +1,21 @@
 import * as React from "react";
-import { Component } from "react";
-import { GameModel } from "../../models/games/GameModel";
+import {Component} from "react";
+import {GameModel} from "../../models/games/GameModel";
 import {
+    Button,
+    Container,
     List,
     ListItem,
     ListItemSecondaryAction,
     ListItemText,
-    Typography,
-    Button,
-    Container,
     ListSubheader
 } from "@material-ui/core";
-import { GameJson, PlayerJson, RestApi } from "../../RestApi";
+import {GameJson, PlayerJson} from "../../RestApi";
 
 interface Props {
     roomId: number;
     game: GameJson;
-    player: PlayerJson
+    player: PlayerJson;
 }
 
 export class BaseGameView extends Component<Props> {
@@ -78,19 +77,19 @@ export class BaseGameView extends Component<Props> {
                             return !this.game.playerIsOnTeam(participant);
                         })
                         .map((participant) => {
-                            return (
-                                this.renderTeamPickerPLayerView(participant, false)
+                            return this.renderTeamPickerPLayerView(
+                                participant
                             );
                         })}
                 </List>
-                <Container style={{ display: "flex" }}>
+                <Container style={{display: "flex"}}>
                     {[1, 2].map((teamNumber) => {
                         const teamMembers = this.game.gameJson[
                             `team${teamNumber}` as "team1" | "team2"
-                        ];
+                            ];
                         return (
                             <List
-                                style={{ width: "50%" }}
+                                style={{width: "50%"}}
                                 key={teamNumber}
                                 subheader={
                                     <ListSubheader>
@@ -99,28 +98,9 @@ export class BaseGameView extends Component<Props> {
                                 }
                             >
                                 {teamMembers?.map((participant) => {
-                                    return (
-                                        <ListItem
-                                            key={participant.id}
-                                            divider={true}
-                                        >
-                                            <ListItemText>
-                                                {participant.name}
-                                            </ListItemText>
-                                            <ListItemSecondaryAction>
-                                                <Button
-                                                    color={"primary"}
-                                                    onClick={() => {
-                                                        this.game.toggleTeam(
-                                                            participant,
-                                                            teamNumber as 1 | 2
-                                                        );
-                                                    }}
-                                                >
-                                                    Remove
-                                                </Button>
-                                            </ListItemSecondaryAction>
-                                        </ListItem>
+                                    return this.renderTeamPickerPLayerView(
+                                        participant,
+                                        teamNumber as 1 | 2
                                     );
                                 })}
                             </List>
@@ -138,34 +118,44 @@ export class BaseGameView extends Component<Props> {
         );
     }
 
-    private renderTeamPickerPLayerView(participant: PlayerJson, isOnTeam: boolean) {
+    private renderTeamPickerPLayerView(
+        participant: PlayerJson,
+        teamNumber?: 1 | 2,
+    ) {
         return <ListItem key={participant.id} divider={true}>
-            <ListItemText>
-                {participant.name}
-            </ListItemText>
+            <ListItemText>{participant.name}</ListItemText>
+
             <ListItemSecondaryAction>
-                <Button
-                    color={"primary"}
-                    onClick={() => {
-                        this.game.toggleTeam(
-                            participant,
-                            1
-                        );
-                    }}
-                >
-                    Team 1
-                </Button>
-                <Button
-                    color={"primary"}
-                    onClick={() => {
-                        this.game.toggleTeam(
-                            participant,
-                            2
-                        );
-                    }}
-                >
-                    Team 2
-                </Button>
+                {!teamNumber && (
+                    <Button
+                        color={"primary"}
+                        onClick={() => {
+                            this.game.toggleTeam(participant, 1);
+                        }}
+                    >
+                        Team 1
+                    </Button>
+                )}
+                {!teamNumber && (
+                    <Button
+                        color={"primary"}
+                        onClick={() => {
+                            this.game.toggleTeam(participant, 2);
+                        }}
+                    >
+                        Team 2
+                    </Button>
+                )}
+                {teamNumber && (
+                    <Button
+                        color={"primary"}
+                        onClick={() => {
+                            this.game.toggleTeam(participant, teamNumber);
+                        }}
+                    >
+                        Remove
+                    </Button>
+                )}
             </ListItemSecondaryAction>
         </ListItem>;
     }

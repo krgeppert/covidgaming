@@ -2,7 +2,6 @@ package app.entity;
 
 import app.dto.GameEventDto;
 
-import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.OneToOne;
 
@@ -14,13 +13,15 @@ public class GameEvent extends AbstractEntity {
     @OneToOne
     private Player creator;
 
-    @Column(columnDefinition = "json")
     private String data;
 
     @Override
     public GameEventDto toDto() {
         GameEventDto dto = new GameEventDto();
         setRootDtoAttributes(dto);
+        dto.setCreator(this.creator.toDto(true));
+        dto.setType(this.type);
+        dto.setData(this.data);
         return dto;
     }
 
